@@ -414,7 +414,7 @@ int f_valeur(Pion* jeu, int joueur)
 //fonction d'évaluation
 int f_eval(Pion* jeu,int joueur)
 {
-	/** A vous de trouver une fonction efficace **/
+    return f_valeur(jeu, joueur) - f_valeur(jeu, -joueur);
 }
 
 //copie du plateau
@@ -449,16 +449,16 @@ Pion* f_raz_plateau()
 }
 
 //Fonction min trouve le minimum des noeuds fils
-??? f_min(???)
-		{
-	/** A remplir **/
-		}
+int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
+{
+    return f_eval(jeu, joueur);
+}
 
 //Fonction max trouve le maximum des noeuds fils
-??? f_max(???)
-		{
-	/** A remplir **/
-		}
+int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
+{
+    return f_eval(jeu, joueur);
+}
 
 /**
  * Calcule et joue le meilleur cout
@@ -466,13 +466,11 @@ Pion* f_raz_plateau()
 void f_IA(int joueur)
 {
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
-
-	/** A remplir **/
-
+    /** A remplir **/
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
 }
 
