@@ -414,7 +414,8 @@ int f_valeur(Pion* jeu, int joueur)
 //fonction d'évaluation
 int f_eval(Pion* jeu,int joueur)
 {
-    return f_valeur(jeu, joueur) - f_valeur(jeu, -joueur);
+    return 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur))
+         + (f_nbPions(jeu, joueur) - f_nbPions(jeu, -joueur));
 }
 
 //copie du plateau
