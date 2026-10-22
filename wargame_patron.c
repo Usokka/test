@@ -414,8 +414,17 @@ int f_valeur(Pion* jeu, int joueur)
 //fonction d'évaluation
 int f_eval(Pion* jeu,int joueur)
 {
-    return 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur))
-         + (f_nbPions(jeu, joueur) - f_nbPions(jeu, -joueur));
+    int l, c, score = 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur));
+    score += f_nbPions(jeu, joueur) - f_nbPions(jeu, -joueur);
+    for (l=0; l<NB_LIGNES; l++)
+        for (c=0; c<NB_COLONNES; c++) {
+            Pion p = jeu[l*NB_COLONNES+c];
+            if (p.couleur == joueur)
+                score += (joueur == 1 ? NB_LIGNES-1-l : l);
+            else if (p.couleur == -joueur)
+                score -= (joueur == 1 ? l : NB_LIGNES-1-l);
+        }
+    return score;
 }
 
 //copie du plateau
