@@ -416,6 +416,7 @@ int f_eval(Pion* jeu,int joueur)
 {
     int l, c, score = 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur));
     score += f_nbPions(jeu, joueur) - f_nbPions(jeu, -joueur);
+
     for (l=0; l<NB_LIGNES; l++)
         for (c=0; c<NB_COLONNES; c++) {
             Pion p = jeu[l*NB_COLONNES+c];
@@ -424,6 +425,7 @@ int f_eval(Pion* jeu,int joueur)
             else if (p.couleur == -joueur)
                 score -= (joueur == 1 ? l : NB_LIGNES-1-l);
         }
+		
     return score;
 }
 
@@ -458,6 +460,9 @@ Pion* f_raz_plateau()
 	return jeu;
 }
 
+int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta);
+int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta);
+
 //Fonction min trouve le minimum des noeuds fils
 int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 {
@@ -467,7 +472,43 @@ int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 //Fonction max trouve le maximum des noeuds fils
 int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 {
-    return f_eval(jeu, joueur);
+    int l,c,dl,dc, meilleur=-INFINI, trouve=0;
+
+    if(profondeur == 0 || f_eval(jeu,joueur) >= INFINI || f_eval(jeu,joueur) <= -INFINI)
+        return f_eval(jeu,joueur);
+
+    for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
+
+        if(jeu[l*NB_COLONNES+c].couleur != joueur) 
+			continue;
+		
+        for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
+            
+			int nl=l+dl;
+			int nc=c+dc;
+			int score;
+
+            Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
+
+            if(f_test_mouvement(jeu,l,c,nl,nc,joueur)!=0) 
+				continue;
+
+            trouve=1;
+            f_copie_plateau(jeu,copie);
+            ancien=plateauDeJeu;
+
+            plateauDeJeu=copie; 
+            f_bouge_piece(copie,l,c,nl,nc,joueur);
+            plateauDeJeu=ancien;
+
+            score=f_min(copie,joueur,profondeur-1,alpha,beta);
+
+            if(score>meilleur) 
+				meilleur=score;
+            /* ALPHA */
+        }
+    }
+    return trouve ? meilleur : f_eval(jeu,joueur);
 }
 
 /**
