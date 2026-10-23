@@ -314,7 +314,7 @@ int f_test_mouvement(Pion *plateau, int l1, int c1, int l2, int c2, int couleur)
 		return 1;
 
 	if(l1-l2 >1 || l2-l1 >1 || c1-c2 >1 || c2-c1 >1 || (l1==l2 && c1==c2))
-		retour = 1;
+		return 1;
 #ifdef DEBUG
 	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
@@ -544,13 +544,42 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
  * */
 void f_IA(int joueur)
 {
-#ifdef DEBUG
-    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
-#endif
-    /** A remplir **/
-#ifdef DEBUG
-    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
-#endif
+    int l,c,dl,dc,meilleur=-INFINI;
+    int l1=-1,c1=-1,l2=-1,c2=-1;
+
+    for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
+
+        if(plateauDeJeu[l*NB_COLONNES+c].couleur!=joueur)
+			continue;
+
+        for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
+
+            int nl=l+dl;
+			int nc=c+dc;
+			int score;
+            Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
+
+            if(f_test_mouvement(plateauDeJeu,l,c,nl,nc,joueur)!=0)
+				continue;
+
+            f_copie_plateau(plateauDeJeu,copie);
+            ancien=plateauDeJeu;
+            plateauDeJeu=copie;
+
+            f_bouge_piece(copie,l,c,nl,nc,joueur);
+            plateauDeJeu=ancien;
+
+            score=f_min(copie,joueur,2,-INFINI,INFINI);
+            if(l1<0 || score>meilleur) {
+                meilleur=score;l1=l;c1=c;l2=nl;c2=nc;
+            }
+        }
+    }
+
+    if(l1>=0) {
+        f_bouge_piece(plateauDeJeu,l1,c1,l2,c2,joueur);
+        printf("IA : %c%d vers %c%d\n",f_convert_int2char(c1),l1,f_convert_int2char(c2),l2);
+    }
 }
 
 
