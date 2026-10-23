@@ -481,9 +481,11 @@ int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
             int nl=l+dl;
 			int nc=c+dc;
 			int score;
+
             Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
             if(f_test_mouvement(jeu,l,c,nl,nc,-joueur)!=0) 
 				continue;
+
             trouve=1;
             f_copie_plateau(jeu,copie);
             ancien=plateauDeJeu;
@@ -492,8 +494,15 @@ int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
             f_bouge_piece(copie,l,c,nl,nc,-joueur);
             plateauDeJeu=ancien;
             score=f_max(copie,joueur,profondeur-1,alpha,beta);
-            if(score<meilleur) meilleur=score;
-            /* BETA */
+
+            if(score<meilleur) 
+				meilleur=score;
+
+            if(meilleur<beta) 
+				beta=meilleur;
+
+            if(alpha>=beta) 
+				return meilleur;
         }
     }
     return trouve ? meilleur : f_eval(jeu,joueur);
@@ -511,29 +520,37 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 
     for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
 
-        if(jeu[l*NB_COLONNES+c].couleur != joueur)
+        if(jeu[l*NB_COLONNES+c].couleur != joueur) 
 			continue;
 
         for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
+
             int nl=l+dl;
 			int nc=c+dc;
 			int score;
 
             Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
+
             if(f_test_mouvement(jeu,l,c,nl,nc,joueur)!=0)
 				continue;
 
             trouve=1;
             f_copie_plateau(jeu,copie);
             ancien=plateauDeJeu;
-            plateauDeJeu=copie; 
+            plateauDeJeu=copie;
 
             f_bouge_piece(copie,l,c,nl,nc,joueur);
             plateauDeJeu=ancien;
             score=f_min(copie,joueur,profondeur-1,alpha,beta);
 
-            if(score>meilleur) meilleur=score;
-            /* ALPHA */
+            if(score>meilleur)
+				meilleur=score;
+
+            if(meilleur>alpha)
+				alpha=meilleur;
+
+            if(alpha>=beta)
+				return meilleur;
         }
     }
     return trouve ? meilleur : f_eval(jeu,joueur);
@@ -544,34 +561,39 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
  * */
 void f_IA(int joueur)
 {
-    int l,c,dl,dc,meilleur=-INFINI;
+    int l,c,dl,dc;
+	int meilleur=-INFINI;
     int l1=-1,c1=-1,l2=-1,c2=-1;
 
     for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
 
-        if(plateauDeJeu[l*NB_COLONNES+c].couleur!=joueur)
+        if(plateauDeJeu[l*NB_COLONNES+c].couleur!=joueur) 
 			continue;
 
         for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
-
             int nl=l+dl;
 			int nc=c+dc;
 			int score;
+
             Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
 
-            if(f_test_mouvement(plateauDeJeu,l,c,nl,nc,joueur)!=0)
-				continue;
-
-            f_copie_plateau(plateauDeJeu,copie);
+            if(f_test_mouvement(plateauDeJeu,l,c,nl,nc,joueur)!=0) continue;
+            
+			f_copie_plateau(plateauDeJeu,copie);
             ancien=plateauDeJeu;
             plateauDeJeu=copie;
 
             f_bouge_piece(copie,l,c,nl,nc,joueur);
             plateauDeJeu=ancien;
 
-            score=f_min(copie,joueur,2,-INFINI,INFINI);
+            score = f_min(copie,joueur,2,-INFINI,INFINI);
+
             if(l1<0 || score>meilleur) {
-                meilleur=score;l1=l;c1=c;l2=nl;c2=nc;
+                meilleur=score;
+				l1=l;
+				c1=c;
+				l2=nl;
+				c2=nc;
             }
         }
     }
