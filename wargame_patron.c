@@ -415,15 +415,32 @@ int f_valeur(Pion* jeu, int joueur)
 int f_eval(Pion* jeu,int joueur)
 {
     int l, c, score = 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur));
-    score += f_nbPions(jeu, joueur) - f_nbPions(jeu, -joueur);
+    int allies = f_nbPions(jeu, joueur), adversaires = f_nbPions(jeu, -joueur);
+
+    if (allies == 0) 
+		return -INFINI;
+    if (adversaires == 0)
+		return INFINI;
+
+    score += allies - adversaires;
+
     for (l=0; l<NB_LIGNES; l++)
         for (c=0; c<NB_COLONNES; c++) {
             Pion p = jeu[l*NB_COLONNES+c];
-            if (p.couleur == joueur)
+
+            if (p.couleur == joueur) {
+                if ((joueur == 1 && l == 0) || (joueur == -1 && l == NB_LIGNES-1))
+					return INFINI;
+
                 score += (joueur == 1 ? NB_LIGNES-1-l : l);
-            else if (p.couleur == -joueur)
+            } else if (p.couleur == -joueur) {
+                if ((joueur == 1 && l == NB_LIGNES-1) || (joueur == -1 && l == 0))
+					return -INFINI;
+
                 score -= (joueur == 1 ? l : NB_LIGNES-1-l);
+            }
         }
+
     return score;
 }
 
@@ -603,7 +620,6 @@ void f_IA(int joueur)
         printf("IA : %c%d vers %c%d\n",f_convert_int2char(c1),l1,f_convert_int2char(c2),l2);
     }
 }
-
 
 /**
  * Demande le choix du joueur humain et calcule le coup demande
