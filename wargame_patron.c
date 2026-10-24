@@ -1,8 +1,7 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 #define NB_LIGNES 10
@@ -13,11 +12,14 @@
 
 typedef struct pion_s
 {
-	int couleur;
-	int valeur;
+    int couleur;
+    int valeur;
 }Pion;
 
 Pion *plateauDeJeu;
+
+int utiliserAlphaBeta = 1;
+unsigned long long noeudsExplores = 0;
 
 void f_affiche_plateau(Pion *plateau);
 int f_convert_char2int(char c);
@@ -28,133 +30,133 @@ char f_convert_int2char(int i);
 int f_convert_char2int(char c)
 {
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	if(c>='A' && c<='Z')
-		return (int)(c-'A');
-	if(c>='a' && c<='z')
-		return (int)(c-'a');
-	return -1;
+    if(c>='A' && c<='Z')
+        return (int)(c-'A');
+    if(c>='a' && c<='z')
+        return (int)(c-'a');
+    return -1;
 }
 
 char f_convert_int2char(int i)
 {
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	return (char)i+'A';
+    return (char)i+'A';
 }
 
 Pion *f_init_plateau()
 {
-	int i, j;
-	Pion *plateau=NULL;
+    int i, j;
+    Pion *plateau=NULL;
 
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	plateau = (Pion *)malloc(NB_LIGNES*NB_COLONNES*sizeof(Pion));
-	if(plateau == NULL)
-	{
-		printf("error: unable to allocate memory\n");
-		exit(EXIT_FAILURE);
-	}
+    plateau = (Pion *)malloc(NB_LIGNES*NB_COLONNES*sizeof(Pion));
+    if(plateau == NULL)
+    {
+        printf("error: unable to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
 
-	for(i=0; i<NB_LIGNES; i++)
-	{
-		for(j=0; j<NB_COLONNES; j++)
-		{
-			plateau[i*NB_COLONNES+j].couleur = 0;
-			plateau[i*NB_COLONNES+j].valeur = 0;
-		}
-	}
+    for(i=0; i<NB_LIGNES; i++)
+    {
+        for(j=0; j<NB_COLONNES; j++)
+        {
+            plateau[i*NB_COLONNES+j].couleur = 0;
+            plateau[i*NB_COLONNES+j].valeur = 0;
+        }
+    }
 
-	plateau[9*NB_COLONNES+5].couleur = 1;
-	plateau[9*NB_COLONNES+5].valeur = 1;
+    plateau[9*NB_COLONNES+5].couleur = 1;
+    plateau[9*NB_COLONNES+5].valeur = 1;
 
-	plateau[9*NB_COLONNES+6].couleur = 1;
-	plateau[9*NB_COLONNES+6].valeur = 2;
+    plateau[9*NB_COLONNES+6].couleur = 1;
+    plateau[9*NB_COLONNES+6].valeur = 2;
 
-	plateau[9*NB_COLONNES+7].couleur = 1;
-	plateau[9*NB_COLONNES+7].valeur = 3;
+    plateau[9*NB_COLONNES+7].couleur = 1;
+    plateau[9*NB_COLONNES+7].valeur = 3;
 
-	plateau[9*NB_COLONNES+8].couleur = 1;
-	plateau[9*NB_COLONNES+8].valeur = 2;
+    plateau[9*NB_COLONNES+8].couleur = 1;
+    plateau[9*NB_COLONNES+8].valeur = 2;
 
-	plateau[9*NB_COLONNES+9].couleur = 1;
-	plateau[9*NB_COLONNES+9].valeur = 1;
+    plateau[9*NB_COLONNES+9].couleur = 1;
+    plateau[9*NB_COLONNES+9].valeur = 1;
 
-	plateau[8*NB_COLONNES+0].couleur = 1;
-	plateau[8*NB_COLONNES+0].valeur = 1;
+    plateau[8*NB_COLONNES+0].couleur = 1;
+    plateau[8*NB_COLONNES+0].valeur = 1;
 
-	plateau[8*NB_COLONNES+1].couleur = 1;
-	plateau[8*NB_COLONNES+1].valeur = 3;
+    plateau[8*NB_COLONNES+1].couleur = 1;
+    plateau[8*NB_COLONNES+1].valeur = 3;
 
-	plateau[8*NB_COLONNES+2].couleur = 1;
-	plateau[8*NB_COLONNES+2].valeur = 3;
+    plateau[8*NB_COLONNES+2].couleur = 1;
+    plateau[8*NB_COLONNES+2].valeur = 3;
 
-	plateau[8*NB_COLONNES+3].couleur = 1;
-	plateau[8*NB_COLONNES+3].valeur = 1;
+    plateau[8*NB_COLONNES+3].couleur = 1;
+    plateau[8*NB_COLONNES+3].valeur = 1;
 
-	plateau[8*NB_COLONNES+6].couleur = 1;
-	plateau[8*NB_COLONNES+6].valeur = 1;
+    plateau[8*NB_COLONNES+6].couleur = 1;
+    plateau[8*NB_COLONNES+6].valeur = 1;
 
-	plateau[8*NB_COLONNES+7].couleur = 1;
-	plateau[8*NB_COLONNES+7].valeur = 1;
+    plateau[8*NB_COLONNES+7].couleur = 1;
+    plateau[8*NB_COLONNES+7].valeur = 1;
 
-	plateau[8*NB_COLONNES+8].couleur = 1;
-	plateau[8*NB_COLONNES+8].valeur = 1;
+    plateau[8*NB_COLONNES+8].couleur = 1;
+    plateau[8*NB_COLONNES+8].valeur = 1;
 
-	plateau[7*NB_COLONNES+1].couleur = 1;
-	plateau[7*NB_COLONNES+1].valeur = 1;
+    plateau[7*NB_COLONNES+1].couleur = 1;
+    plateau[7*NB_COLONNES+1].valeur = 1;
 
-	plateau[7*NB_COLONNES+2].couleur = 1;
-	plateau[7*NB_COLONNES+2].valeur = 1;
+    plateau[7*NB_COLONNES+2].couleur = 1;
+    plateau[7*NB_COLONNES+2].valeur = 1;
 
-	plateau[2*NB_COLONNES+7].couleur = -1;
-	plateau[2*NB_COLONNES+7].valeur = 1;
+    plateau[2*NB_COLONNES+7].couleur = -1;
+    plateau[2*NB_COLONNES+7].valeur = 1;
 
-	plateau[2*NB_COLONNES+8].couleur = -1;
-	plateau[2*NB_COLONNES+8].valeur = 1;
+    plateau[2*NB_COLONNES+8].couleur = -1;
+    plateau[2*NB_COLONNES+8].valeur = 1;
 
-	plateau[1*NB_COLONNES+1].couleur = -1;
-	plateau[1*NB_COLONNES+1].valeur = 1;
+    plateau[1*NB_COLONNES+1].couleur = -1;
+    plateau[1*NB_COLONNES+1].valeur = 1;
 
-	plateau[1*NB_COLONNES+2].couleur = -1;
-	plateau[1*NB_COLONNES+2].valeur = 1;
+    plateau[1*NB_COLONNES+2].couleur = -1;
+    plateau[1*NB_COLONNES+2].valeur = 1;
 
-	plateau[1*NB_COLONNES+3].couleur = -1;
-	plateau[1*NB_COLONNES+3].valeur = 1;
+    plateau[1*NB_COLONNES+3].couleur = -1;
+    plateau[1*NB_COLONNES+3].valeur = 1;
 
-	plateau[1*NB_COLONNES+6].couleur = -1;
-	plateau[1*NB_COLONNES+6].valeur = 1;
+    plateau[1*NB_COLONNES+6].couleur = -1;
+    plateau[1*NB_COLONNES+6].valeur = 1;
 
-	plateau[1*NB_COLONNES+7].couleur = -1;
-	plateau[1*NB_COLONNES+7].valeur = 3;
+    plateau[1*NB_COLONNES+7].couleur = -1;
+    plateau[1*NB_COLONNES+7].valeur = 3;
 
-	plateau[1*NB_COLONNES+8].couleur = -1;
-	plateau[1*NB_COLONNES+8].valeur = 3;
+    plateau[1*NB_COLONNES+8].couleur = -1;
+    plateau[1*NB_COLONNES+8].valeur = 3;
 
-	plateau[1*NB_COLONNES+9].couleur = -1;
-	plateau[1*NB_COLONNES+9].valeur = 1;
+    plateau[1*NB_COLONNES+9].couleur = -1;
+    plateau[1*NB_COLONNES+9].valeur = 1;
 
-	plateau[0*NB_COLONNES+0].couleur = -1;
-	plateau[0*NB_COLONNES+0].valeur = 1;
+    plateau[0*NB_COLONNES+0].couleur = -1;
+    plateau[0*NB_COLONNES+0].valeur = 1;
 
-	plateau[0*NB_COLONNES+1].couleur = -1;
-	plateau[0*NB_COLONNES+1].valeur = 2;
+    plateau[0*NB_COLONNES+1].couleur = -1;
+    plateau[0*NB_COLONNES+1].valeur = 2;
 
-	plateau[0*NB_COLONNES+2].couleur = -1;
-	plateau[0*NB_COLONNES+2].valeur = 3;
+    plateau[0*NB_COLONNES+2].couleur = -1;
+    plateau[0*NB_COLONNES+2].valeur = 3;
 
-	plateau[0*NB_COLONNES+3].couleur = -1;
-	plateau[0*NB_COLONNES+3].valeur = 2;
+    plateau[0*NB_COLONNES+3].couleur = -1;
+    plateau[0*NB_COLONNES+3].valeur = 2;
 
-	plateau[0*NB_COLONNES+4].couleur = -1;
-	plateau[0*NB_COLONNES+4].valeur = 1;
+    plateau[0*NB_COLONNES+4].couleur = -1;
+    plateau[0*NB_COLONNES+4].valeur = 1;
 
 #ifdef DEBUG
 printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
@@ -165,250 +167,250 @@ return plateau;
 
 void f_affiche_plateau(Pion *plateau)
 {
-	int i,j,k;
+    int i,j,k;
 
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	printf("\n    ");
-	for(k=0; k<NB_COLONNES; k++)
-		printf("%2d ",f_convert_int2char(k));
-	printf("\n    ");
-	for(k=0; k<NB_COLONNES; k++)
-		printf("-- ");
-	printf("\n");
-	for(i=NB_LIGNES-1; i>=0; i--)
-	{
-		printf("%2d ", i);
-		for(j=0; j<NB_COLONNES; j++)
-		{
-			printf("|");
-			switch(plateau[i*NB_COLONNES+j].couleur)
-			{
-			case -1:
-				printf("%do",plateau[i*NB_COLONNES+j].valeur);
-				break;
-			case 1:
-				printf("%dx",plateau[i*NB_COLONNES+j].valeur);
-				break;
-			default:
-				printf("  ");
-			}
-		}
-		printf("|\n    ");
-		for(k=0; k<NB_COLONNES; k++)
-			printf("-- ");
-		printf("\n");
-	}
-	printf("    ");
+    printf("\n    ");
+    for(k=0; k<NB_COLONNES; k++)
+        printf("%2d ",f_convert_int2char(k));
+    printf("\n    ");
+    for(k=0; k<NB_COLONNES; k++)
+        printf("-- ");
+    printf("\n");
+    for(i=NB_LIGNES-1; i>=0; i--)
+    {
+        printf("%2d ", i);
+        for(j=0; j<NB_COLONNES; j++)
+        {
+            printf("|");
+            switch(plateau[i*NB_COLONNES+j].couleur)
+            {
+            case -1:
+                printf("%do",plateau[i*NB_COLONNES+j].valeur);
+                break;
+            case 1:
+                printf("%dx",plateau[i*NB_COLONNES+j].valeur);
+                break;
+            default:
+                printf("  ");
+            }
+        }
+        printf("|\n    ");
+        for(k=0; k<NB_COLONNES; k++)
+            printf("-- ");
+        printf("\n");
+    }
+    printf("    ");
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
 }
 
 
 int f_gagnant()
 {
-	int i, j, somme1=0, somme2=0;
+    int i, j, somme1=0, somme2=0;
 
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	//Quelqu'un est-il arrive sur la ligne de l'autre
-	for(i=0; i<NB_COLONNES; i++)
-	{
-		if(plateauDeJeu[i].couleur == 1)
-			return 1;
-		if(plateauDeJeu[(NB_LIGNES-1)*NB_COLONNES+i].couleur == -1)
-			return -1;
-	}
-	
-	//taille des armees
-	for(i=0; i<NB_LIGNES; i++)
-	{
-		for(j=0; j<NB_COLONNES; j++)
-		{
-			if(plateauDeJeu[i*NB_COLONNES+j].couleur == 1)
-				somme1++;
-			if(plateauDeJeu[i*NB_COLONNES+j].couleur == -1)
-				somme2++;
-		}
-	}
-	if(somme1==0)
-		return -1;
-	if(somme2==0)
-		return 1;
+    //Quelqu'un est-il arrive sur la ligne de l'autre
+    for(i=0; i<NB_COLONNES; i++)
+    {
+        if(plateauDeJeu[i].couleur == 1)
+            return 1;
+        if(plateauDeJeu[(NB_LIGNES-1)*NB_COLONNES+i].couleur == -1)
+            return -1;
+    }
+
+    //taille des armees
+    for(i=0; i<NB_LIGNES; i++)
+    {
+        for(j=0; j<NB_COLONNES; j++)
+        {
+            if(plateauDeJeu[i*NB_COLONNES+j].couleur == 1)
+                somme1++;
+            if(plateauDeJeu[i*NB_COLONNES+j].couleur == -1)
+                somme2++;
+        }
+    }
+    if(somme1==0)
+        return -1;
+    if(somme2==0)
+        return 1;
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	return 0;
+    return 0;
 }
 
 
 /**
  * Prend comme argument la ligne et la colonne de la case
- * 	pour laquelle la bataille a lieu
+ *  pour laquelle la bataille a lieu
  * Renvoie le couleur du gagnant
  * */
 int f_bataille(int l, int c)
 {
-	int i, j, mini, maxi, minj, maxj;
-	int somme=0;
+    int i, j, mini, maxi, minj, maxj;
+    int somme=0;
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	mini = l-1<0?0:l-1;
-	maxi = l+1>NB_LIGNES-1?NB_LIGNES-1:l+1;
-	minj = c-1<0?0:c-1;
-	maxj = c+1>NB_COLONNES-1?NB_COLONNES-1:c+1;
+    mini = l-1<0?0:l-1;
+    maxi = l+1>NB_LIGNES-1?NB_LIGNES-1:l+1;
+    minj = c-1<0?0:c-1;
+    maxj = c+1>NB_COLONNES-1?NB_COLONNES-1:c+1;
 
-	for(i=mini; i<=maxi; i++)
-	{
-		for(j=minj; j<=maxj; j++)
-		{
-			somme += plateauDeJeu[i*NB_COLONNES+j].couleur*plateauDeJeu[i*NB_COLONNES+j].valeur;
-		}
-	}
-	somme -= plateauDeJeu[l*NB_COLONNES+c].couleur*plateauDeJeu[l*NB_COLONNES+c].valeur;
+    for(i=mini; i<=maxi; i++)
+    {
+        for(j=minj; j<=maxj; j++)
+        {
+            somme += plateauDeJeu[i*NB_COLONNES+j].couleur*plateauDeJeu[i*NB_COLONNES+j].valeur;
+        }
+    }
+    somme -= plateauDeJeu[l*NB_COLONNES+c].couleur*plateauDeJeu[l*NB_COLONNES+c].valeur;
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	if(somme < 0)
-		return -1;
-	if(somme > 0)
-		return 1;
+    if(somme < 0)
+        return -1;
+    if(somme > 0)
+        return 1;
 
-	return plateauDeJeu[l*NB_COLONNES+c].couleur;
+    return plateauDeJeu[l*NB_COLONNES+c].couleur;
 }
 
 
 /**
  * Prend la ligne et colonne de la case d'origine
- * 	et la ligne et colonne de la case de destination
+ *  et la ligne et colonne de la case de destination
  * Renvoie 1 en cas d'erreur
  * Renvoie 0 sinon
  * */
 int f_test_mouvement(Pion *plateau, int l1, int c1, int l2, int c2, int couleur)
 {
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
-	printf("de (%d,%d) vers (%d,%d)\n", l1, c1, l2, c2);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("de (%d,%d) vers (%d,%d)\n", l1, c1, l2, c2);
 #endif
-	/* Erreur, hors du plateau */
-	if(l1 < 0 || l1 >= NB_LIGNES || l2 < 0 || l2 >= NB_LIGNES ||
-			c1 < 0 || c1 >= NB_COLONNES || c2 < 0 || c2 >= NB_COLONNES)
-		return 1;
-	/* Erreur, il n'y a pas de pion a deplacer ou le pion n'appartient pas au joueur*/
-	if(plateau[l1*NB_COLONNES+c1].valeur == 0 || plateau[l1*NB_COLONNES+c1].couleur != couleur)
-		return 1;
-	/* Erreur, tentative de tir fratricide */
-	if(plateau[l2*NB_COLONNES+c2].couleur == plateau[l1*NB_COLONNES+c1].couleur)
-		return 1;
+    /* Erreur, hors du plateau */
+    if(l1 < 0 || l1 >= NB_LIGNES || l2 < 0 || l2 >= NB_LIGNES ||
+            c1 < 0 || c1 >= NB_COLONNES || c2 < 0 || c2 >= NB_COLONNES)
+        return 1;
+    /* Erreur, il n'y a pas de pion a deplacer ou le pion n'appartient pas au joueur*/
+    if(plateau[l1*NB_COLONNES+c1].valeur == 0 || plateau[l1*NB_COLONNES+c1].couleur != couleur)
+        return 1;
+    /* Erreur, tentative de tir fratricide */
+    if(plateau[l2*NB_COLONNES+c2].couleur == plateau[l1*NB_COLONNES+c1].couleur)
+        return 1;
 
-	if(l1-l2 >1 || l2-l1 >1 || c1-c2 >1 || c2-c1 >1 || (l1==l2 && c1==c2))
-		return 1;
+    if(l1-l2 >1 || l2-l1 >1 || c1-c2 >1 || c2-c1 >1 || (l1==l2 && c1==c2))
+        return 1;
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	return 0;
+    return 0;
 }
 
 
 /**
  * Prend la ligne et colonne de la case d'origine
- * 	et la ligne et colonne de la case de destination
+ *  et la ligne et colonne de la case de destination
  *  et effectue le trantement de l'operation demandée
  * Renvoie 1 en cas d'erreur
  * Renvoie 0 sinon
  * */
 int f_bouge_piece(Pion *plateau, int l1, int c1, int l2, int c2, int couleur)
 {
-	int gagnant=0;
+    int gagnant=0;
 
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	if(f_test_mouvement(plateau, l1, c1, l2, c2, couleur) != 0)
-		return 1;
+    if(f_test_mouvement(plateau, l1, c1, l2, c2, couleur) != 0)
+        return 1;
 
 
-	/* Cas ou il n'y a personne a l'arrivee */
-	if(plateau[l2*NB_COLONNES+c2].valeur == 0)
-	{
-		plateau[l2*NB_COLONNES+c2].couleur = plateau[l1*NB_COLONNES+c1].couleur;
-		plateau[l2*NB_COLONNES+c2].valeur = plateau[l1*NB_COLONNES+c1].valeur;
-		plateau[l1*NB_COLONNES+c1].couleur = 0;
-		plateau[l1*NB_COLONNES+c1].valeur = 0;
-	}
-	else
-	{
-		gagnant=f_bataille(l2, c2);
-		/* victoire */
-		if(gagnant == couleur)
-		{
-			plateau[l2*NB_COLONNES+c2].couleur = plateau[l1*NB_COLONNES+c1].couleur;
-			plateau[l2*NB_COLONNES+c2].valeur = plateau[l1*NB_COLONNES+c1].valeur;
-			plateau[l1*NB_COLONNES+c1].couleur = 0;
-			plateau[l1*NB_COLONNES+c1].valeur = 0;
-		}
-		/* defaite */
-		else if(gagnant != 0)
-		{
-			plateau[l1*NB_COLONNES+c1].couleur = 0;
-			plateau[l1*NB_COLONNES+c1].valeur = 0;
-		}
-	}
+    /* Cas ou il n'y a personne a l'arrivee */
+    if(plateau[l2*NB_COLONNES+c2].valeur == 0)
+    {
+        plateau[l2*NB_COLONNES+c2].couleur = plateau[l1*NB_COLONNES+c1].couleur;
+        plateau[l2*NB_COLONNES+c2].valeur = plateau[l1*NB_COLONNES+c1].valeur;
+        plateau[l1*NB_COLONNES+c1].couleur = 0;
+        plateau[l1*NB_COLONNES+c1].valeur = 0;
+    }
+    else
+    {
+        gagnant=f_bataille(l2, c2);
+        /* victoire */
+        if(gagnant == couleur)
+        {
+            plateau[l2*NB_COLONNES+c2].couleur = plateau[l1*NB_COLONNES+c1].couleur;
+            plateau[l2*NB_COLONNES+c2].valeur = plateau[l1*NB_COLONNES+c1].valeur;
+            plateau[l1*NB_COLONNES+c1].couleur = 0;
+            plateau[l1*NB_COLONNES+c1].valeur = 0;
+        }
+        /* defaite */
+        else if(gagnant != 0)
+        {
+            plateau[l1*NB_COLONNES+c1].couleur = 0;
+            plateau[l1*NB_COLONNES+c1].valeur = 0;
+        }
+    }
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
-	return 0;
+    return 0;
 }
 
 //Calcul du nombre de pions sur le plateau du joueur
 int f_nbPions(Pion* jeu, int joueur)
 {
-	int nbPion=0;
-	int i, j;
-	for (i = 0; i < NB_COLONNES; ++i)
-	{
-		for (j = 0; j < NB_LIGNES; ++j)
-		{
-			if (jeu[i * NB_COLONNES + j].couleur == joueur)
-			{
-				++nbPion;
-			}
-		}
-	}
-	return nbPion;
+    int nbPion=0;
+    int i, j;
+    for (i = 0; i < NB_COLONNES; ++i)
+    {
+        for (j = 0; j < NB_LIGNES; ++j)
+        {
+            if (jeu[i * NB_COLONNES + j].couleur == joueur)
+            {
+                ++nbPion;
+            }
+        }
+    }
+    return nbPion;
 }
 
 //Calcul de la valeur de tous les pions du joueur
 int f_valeur(Pion* jeu, int joueur)
 {
-	int i, j;
-	int valeur=0;
-	for (i = 0; i < NB_COLONNES; ++i)
-	{
-		for (j = 0; j < NB_LIGNES; ++j)
-		{
-			if (jeu[i * NB_COLONNES + j].couleur == joueur)
-			{
-				valeur += jeu[i * NB_COLONNES + j].valeur;
-			}
-		}
-	}
-	return valeur;
+    int i, j;
+    int valeur=0;
+    for (i = 0; i < NB_COLONNES; ++i)
+    {
+        for (j = 0; j < NB_LIGNES; ++j)
+        {
+            if (jeu[i * NB_COLONNES + j].couleur == joueur)
+            {
+                valeur += jeu[i * NB_COLONNES + j].valeur;
+            }
+        }
+    }
+    return valeur;
 }
 
 //fonction d'évaluation
@@ -417,10 +419,10 @@ int f_eval(Pion* jeu,int joueur)
     int l, c, score = 3 * (f_valeur(jeu, joueur) - f_valeur(jeu, -joueur));
     int allies = f_nbPions(jeu, joueur), adversaires = f_nbPions(jeu, -joueur);
 
-    if (allies == 0) 
-		return -INFINI;
+    if (allies == 0)
+        return -INFINI;
     if (adversaires == 0)
-		return INFINI;
+        return INFINI;
 
     score += allies - adversaires;
 
@@ -430,12 +432,12 @@ int f_eval(Pion* jeu,int joueur)
 
             if (p.couleur == joueur) {
                 if ((joueur == 1 && l == 0) || (joueur == -1 && l == NB_LIGNES-1))
-					return INFINI;
+                    return INFINI;
 
                 score += (joueur == 1 ? NB_LIGNES-1-l : l);
             } else if (p.couleur == -joueur) {
                 if ((joueur == 1 && l == NB_LIGNES-1) || (joueur == -1 && l == 0))
-					return -INFINI;
+                    return -INFINI;
 
                 score -= (joueur == 1 ? l : NB_LIGNES-1-l);
             }
@@ -447,32 +449,32 @@ int f_eval(Pion* jeu,int joueur)
 //copie du plateau
 void f_copie_plateau(Pion* source, Pion* destination)
 {
-	int i, j;
-	for (i = 0; i < NB_LIGNES; i++)
-	{
-		for (j = 0; j < NB_COLONNES; j++)
-		{
-			destination[i * NB_COLONNES + j].couleur = source[i * NB_COLONNES + j].couleur;
-			destination[i * NB_COLONNES + j].valeur = source[i * NB_COLONNES + j].valeur;
-		}
-	}
+    int i, j;
+    for (i = 0; i < NB_LIGNES; i++)
+    {
+        for (j = 0; j < NB_COLONNES; j++)
+        {
+            destination[i * NB_COLONNES + j].couleur = source[i * NB_COLONNES + j].couleur;
+            destination[i * NB_COLONNES + j].valeur = source[i * NB_COLONNES + j].valeur;
+        }
+    }
 }
 
 //mise a zero du plateau
 Pion* f_raz_plateau()
 {
-	Pion* jeu = NULL;
-	int i, j;
-	jeu = (Pion *) malloc(NB_LIGNES * NB_COLONNES * sizeof (Pion));
-	for (i = 0; i < NB_LIGNES; i++)
-	{
-		for (j = 0; j < NB_COLONNES; j++)
-		{
-			jeu[i * NB_COLONNES + j].couleur = 0;
-			jeu[i * NB_COLONNES + j].valeur = 0;
-		}
-	}
-	return jeu;
+    Pion* jeu = NULL;
+    int i, j;
+    jeu = (Pion *) malloc(NB_LIGNES * NB_COLONNES * sizeof (Pion));
+    for (i = 0; i < NB_LIGNES; i++)
+    {
+        for (j = 0; j < NB_COLONNES; j++)
+        {
+            jeu[i * NB_COLONNES + j].couleur = 0;
+            jeu[i * NB_COLONNES + j].valeur = 0;
+        }
+    }
+    return jeu;
 }
 
 int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta);
@@ -482,26 +484,28 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta);
 int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 {
     int l,c,dl,dc;
-	int meilleur=INFINI;
-	int trouve=0;
+    int meilleur=INFINI;
+    int trouve=0;
+
+    noeudsExplores++;
 
     if(profondeur == 0 || f_eval(jeu,joueur) >= INFINI || f_eval(jeu,joueur) <= -INFINI)
         return f_eval(jeu,joueur);
 
     for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
 
-        if(jeu[l*NB_COLONNES+c].couleur != -joueur) 
-			continue;
+        if(jeu[l*NB_COLONNES+c].couleur != -joueur)
+            continue;
 
         for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
 
             int nl=l+dl;
-			int nc=c+dc;
-			int score;
+            int nc=c+dc;
+            int score;
 
             Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
-            if(f_test_mouvement(jeu,l,c,nl,nc,-joueur)!=0) 
-				continue;
+            if(f_test_mouvement(jeu,l,c,nl,nc,-joueur)!=0)
+                continue;
 
             trouve=1;
             f_copie_plateau(jeu,copie);
@@ -512,14 +516,16 @@ int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
             plateauDeJeu=ancien;
             score=f_max(copie,joueur,profondeur-1,alpha,beta);
 
-            if(score<meilleur) 
-				meilleur=score;
+            if(score<meilleur)
+                meilleur=score;
 
-            if(meilleur<beta) 
-				beta=meilleur;
+            if(utiliserAlphaBeta == 1) {
+                if(meilleur<beta)
+                    beta=meilleur;
 
-            if(alpha>=beta) 
-				return meilleur;
+                if(alpha>=beta)
+                    return meilleur;
+            }
         }
     }
     return trouve ? meilleur : f_eval(jeu,joueur);
@@ -529,27 +535,29 @@ int f_min(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 {
     int l,c,dl,dc;
-	int meilleur=-INFINI;
-	int trouve=0;
+    int meilleur=-INFINI;
+    int trouve=0;
+
+    noeudsExplores++;
 
     if(profondeur == 0 || f_eval(jeu,joueur) >= INFINI || f_eval(jeu,joueur) <= -INFINI)
         return f_eval(jeu,joueur);
 
     for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
 
-        if(jeu[l*NB_COLONNES+c].couleur != joueur) 
-			continue;
+        if(jeu[l*NB_COLONNES+c].couleur != joueur)
+            continue;
 
         for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
 
             int nl=l+dl;
-			int nc=c+dc;
-			int score;
+            int nc=c+dc;
+            int score;
 
             Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
 
             if(f_test_mouvement(jeu,l,c,nl,nc,joueur)!=0)
-				continue;
+                continue;
 
             trouve=1;
             f_copie_plateau(jeu,copie);
@@ -561,13 +569,15 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
             score=f_min(copie,joueur,profondeur-1,alpha,beta);
 
             if(score>meilleur)
-				meilleur=score;
+                meilleur=score;
 
-            if(meilleur>alpha)
-				alpha=meilleur;
+            if(utiliserAlphaBeta == 1) {
+                if(meilleur>alpha)
+                    alpha=meilleur;
 
-            if(alpha>=beta)
-				return meilleur;
+                if(alpha>=beta)
+                    return meilleur;
+            }
         }
     }
     return trouve ? meilleur : f_eval(jeu,joueur);
@@ -579,45 +589,102 @@ int f_max(Pion *jeu, int joueur, int profondeur, int alpha, int beta)
 void f_IA(int joueur)
 {
     int l,c,dl,dc;
-	int meilleur=-INFINI;
+    int meilleur=-INFINI;
     int l1=-1,c1=-1,l2=-1,c2=-1;
+    int choixL1=-1,choixC1=-1,choixL2=-1,choixC2=-1;
+    int scoreMinimax=0,scoreAlphaBeta=0;
+    int algo;
+    unsigned long long noeudsMinimax=0,noeudsAlphaBeta=0;
+    double tempsMinimax=0,tempsAlphaBeta=0;
+    clock_t debut,fin;
 
-    for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
+    for(algo=0;algo<2;algo++) {
 
-        if(plateauDeJeu[l*NB_COLONNES+c].couleur!=joueur) 
-			continue;
+        utiliserAlphaBeta=algo;
+        noeudsExplores=0;
+        meilleur=-INFINI;
+        l1=-1;c1=-1;l2=-1;c2=-1;
 
-        for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
-            int nl=l+dl;
-			int nc=c+dc;
-			int score;
+        debut=clock();
 
-            Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
+        for(l=0;l<NB_LIGNES;l++) for(c=0;c<NB_COLONNES;c++) {
 
-            if(f_test_mouvement(plateauDeJeu,l,c,nl,nc,joueur)!=0) continue;
-            
-			f_copie_plateau(plateauDeJeu,copie);
-            ancien=plateauDeJeu;
-            plateauDeJeu=copie;
+            if(plateauDeJeu[l*NB_COLONNES+c].couleur!=joueur)
+                continue;
 
-            f_bouge_piece(copie,l,c,nl,nc,joueur);
-            plateauDeJeu=ancien;
+            for(dl=-1;dl<=1;dl++) for(dc=-1;dc<=1;dc++) {
 
-            score = f_min(copie,joueur,2,-INFINI,INFINI);
+                int nl=l+dl;
+                int nc=c+dc;
+                int score;
+                Pion copie[NB_LIGNES*NB_COLONNES], *ancien;
 
-            if(l1<0 || score>meilleur) {
-                meilleur=score;
-				l1=l;
-				c1=c;
-				l2=nl;
-				c2=nc;
+                if(f_test_mouvement(plateauDeJeu,l,c,nl,nc,joueur)!=0)
+                    continue;
+
+                f_copie_plateau(plateauDeJeu,copie);
+                ancien=plateauDeJeu;
+                plateauDeJeu=copie;
+
+                f_bouge_piece(copie,l,c,nl,nc,joueur);
+                plateauDeJeu=ancien;
+
+                score=f_min(copie,joueur,2,-INFINI,INFINI);
+
+                if(l1<0 || score>meilleur) {
+                    meilleur=score;
+                    l1=l;
+                    c1=c;
+                    l2=nl;
+                    c2=nc;
+                }
             }
+        }
+
+        fin=clock();
+
+        if(algo==0) {
+            scoreMinimax=meilleur;
+            noeudsMinimax=noeudsExplores;
+            tempsMinimax=1000.0*(fin-debut)/CLOCKS_PER_SEC;
+        }
+        else {
+            scoreAlphaBeta=meilleur;
+            noeudsAlphaBeta=noeudsExplores;
+            tempsAlphaBeta=1000.0*(fin-debut)/CLOCKS_PER_SEC;
+
+            choixL1=l1;
+            choixC1=c1;
+            choixL2=l2;
+            choixC2=c2;
         }
     }
 
-    if(l1>=0) {
-        f_bouge_piece(plateauDeJeu,l1,c1,l2,c2,joueur);
-        printf("IA : %c%d vers %c%d\n",f_convert_int2char(c1),l1,f_convert_int2char(c2),l2);
+    printf("\n========= COMPARAISON IA =========\n");
+
+    printf("\nMINIMAX\n");
+    printf("Score             : %d\n",scoreMinimax);
+    printf("Noeuds explores   : %llu\n",noeudsMinimax);
+    printf("Temps CPU         : %.2f ms\n",tempsMinimax);
+
+    printf("\nALPHA-BETA\n");
+    printf("Score             : %d\n",scoreAlphaBeta);
+    printf("Noeuds explores   : %llu\n",noeudsAlphaBeta);
+    printf("Temps CPU         : %.2f ms\n",tempsAlphaBeta);
+
+    if(noeudsMinimax>0) {
+        double reduction=100.0*(noeudsMinimax-noeudsAlphaBeta)/noeudsMinimax;
+        printf("\nReduction de noeuds : %.2f %%\n",reduction);
+    }
+
+    if(scoreMinimax!=scoreAlphaBeta)
+        printf("Attention : les scores sont differents !\n");
+
+    printf("=================================\n\n");
+
+    if(choixL1>=0) {
+        f_bouge_piece(plateauDeJeu,choixL1,choixC1,choixL2,choixC2,joueur);
+        printf("IA : %c%d vers %c%d\n",f_convert_int2char(choixC1),choixL1,f_convert_int2char(choixC2),choixL2);
     }
 }
 
@@ -626,94 +693,93 @@ void f_IA(int joueur)
  * */
 void f_humain(int joueur)
 {
-	char c1, c2;
-	char buffer[32];
-	int l1, l2;
+    char c1, c2;
+    char buffer[32];
+    int l1, l2;
 
 
 #ifdef DEBUG
-	printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: entering %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	printf("joueur ");
-	switch(joueur)
-	{
-	case -1:
-		printf("o ");
-		break;
-	case 1:
-		printf("x ");
-		break;
-	default:
-		printf("inconnu ");
-	}
-	printf("joue:\n");
-	while(1)
-	{
-		fgets(buffer, 32, stdin);
-		if(sscanf(buffer, "%c%i%c%i\n", &c1, &l1, &c2, &l2) == 4)
-		{
-			if(f_bouge_piece(plateauDeJeu, l1, f_convert_char2int(c1), l2, f_convert_char2int(c2), joueur) == 0)
-				break;
-		}
-		fflush(stdin);
-		printf("mauvais choix\n");
-	}
+    printf("joueur ");
+    switch(joueur)
+    {
+    case -1:
+        printf("o ");
+        break;
+    case 1:
+        printf("x ");
+        break;
+    default:
+        printf("inconnu ");
+    }
+    printf("joue:\n");
+    while(1)
+    {
+        fgets(buffer, 32, stdin);
+        if(sscanf(buffer, "%c%i%c%i\n", &c1, &l1, &c2, &l2) == 4)
+        {
+            if(f_bouge_piece(plateauDeJeu, l1, f_convert_char2int(c1), l2, f_convert_char2int(c2), joueur) == 0)
+                break;
+        }
+        fflush(stdin);
+        printf("mauvais choix\n");
+    }
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
 }
 
 int main(int argv, char *argc[])
 {
-	int fin = 0,mode=0 , ret, joueur = 1;
-	printf("1 humain vs IA\n2 humain vs humain\n3 IA vs IA\n");
-	scanf("%d",&mode);
+    int fin = 0,mode=0 , ret, joueur = 1;
+    printf("1 humain vs IA\n2 humain vs humain\n3 IA vs IA\n");
+    scanf("%d",&mode);
 
-	plateauDeJeu = f_init_plateau();
-	while (!fin)
-	{
-		f_affiche_plateau(plateauDeJeu);
-		if(mode==1)
-		{
-			if(joueur>0)
-				f_humain(joueur);
-			else
-				f_IA(joueur);
-		}
-		else if(mode==2)
-		{
-			f_humain(joueur);
-		}
-		else
-		{
-			f_IA(joueur);
-		}
+    plateauDeJeu = f_init_plateau();
+    while (!fin)
+    {
+        f_affiche_plateau(plateauDeJeu);
+        if(mode==1)
+        {
+            if(joueur>0)
+                f_humain(joueur);
+            else
+                f_IA(joueur);
+        }
+        else if(mode==2)
+        {
+            f_humain(joueur);
+        }
+        else
+        {
+            f_IA(joueur);
+        }
 
-		if ((ret = f_gagnant()) != 0)
-		{
-			switch (ret)
-			{
-			case 1:
-				f_affiche_plateau(plateauDeJeu);
-				printf("joueur x gagne!\n");
-				fin = 1;
-				break;
-			case -1:
-				f_affiche_plateau(plateauDeJeu);
-				printf("joueur o gagne!\n");
-				fin = 1;
-				break;
-			}
-		}
-		joueur = -joueur;
-	}
+        if ((ret = f_gagnant()) != 0)
+        {
+            switch (ret)
+            {
+            case 1:
+                f_affiche_plateau(plateauDeJeu);
+                printf("joueur x gagne!\n");
+                fin = 1;
+                break;
+            case -1:
+                f_affiche_plateau(plateauDeJeu);
+                printf("joueur o gagne!\n");
+                fin = 1;
+                break;
+            }
+        }
+        joueur = -joueur;
+    }
 
 #ifdef DEBUG
-	printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
+    printf("dbg: exiting %s %d\n", __FUNCTION__, __LINE__);
 #endif
 
-	return 0;
+    return 0;
 }
-
